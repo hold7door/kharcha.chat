@@ -1,4 +1,3 @@
-import os
 import re
 import json
 import torch
@@ -9,12 +8,10 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 logger = logging.getLogger(__name__)
 
-os.environ["TRANSFORMERS_CACHE"] = "/opt/transformers_cache"
-
 MODEL_NAME = "deepseek-ai/deepseek-coder-1.3b-instruct"
 
 
-class Structure:
+class TextStructure:
     def __init__(self):
         self.tokenizer, self.model = self.load_model()
     

@@ -1,9 +1,9 @@
 import os
 import torch
 
-from .log_ger import logging
 from transformers import AutoProcessor, GenerationConfig, AutoModelForCausalLM
 
+from .log_ger import logging
 logger = logging.getLogger(__name__)
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
@@ -62,7 +62,7 @@ class ImageStructure:
         """
 
         # Encode input
-        inputs = self.processor(prompt, raw_image, return_tensors="pt").to('cuda:0')
+        inputs = self.processor(prompt, raw_image, return_tensors="pt").to(self.device)
 
         # Generate response
         with torch.no_grad():

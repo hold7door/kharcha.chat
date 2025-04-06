@@ -1,5 +1,5 @@
 
-import { Transaction, CategoryTotal, TransactionCategory } from "@/types/transaction";
+import { Transaction, CategoryTotal } from "@/types/transaction";
 
 export function calculateCategoryTotals(transactions: Transaction[]): CategoryTotal[] {
   // Only consider debit transactions for spending analysis
@@ -9,7 +9,7 @@ export function calculateCategoryTotals(transactions: Transaction[]): CategoryTo
   const totalSpent = debits.reduce((sum, transaction) => sum + transaction.amount, 0);
   
   // Group transactions by category and calculate totals
-  const categoryMap = new Map<TransactionCategory, number>();
+  const categoryMap = new Map<string, number>();
   
   debits.forEach(transaction => {
     const currentTotal = categoryMap.get(transaction.category) || 0;
@@ -32,7 +32,7 @@ export function calculateCategoryTotals(transactions: Transaction[]): CategoryTo
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'INR',
   }).format(amount);
 }
 
@@ -40,8 +40,8 @@ export function getTransactionTypeColor(type: 'debit' | 'credit'): string {
   return type === 'debit' ? 'text-red-500' : 'text-green-500';
 }
 
-export function getCategoryColor(category: TransactionCategory): string {
-  const colorMap: Record<TransactionCategory, string> = {
+export function getCategoryColor(category: string): string {
+  const colorMap: Record<string, string> = {
     food: 'bg-chart-food',
     shopping: 'bg-chart-shopping',
     transport: 'bg-chart-transport',

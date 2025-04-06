@@ -1,27 +1,17 @@
 
 export type TransactionType = 'debit' | 'credit';
 
-export type TransactionCategory =
-  | 'food'
-  | 'shopping'
-  | 'transport'
-  | 'utilities'
-  | 'entertainment'
-  | 'health'
-  | 'education'
-  | 'other';
-
 export interface Transaction {
   id: string;
   date: string;
-  category: TransactionCategory;
+  category: string;
   description: string;
   amount: number;
   type: TransactionType;
 }
 
 export interface CategoryTotal {
-  category: TransactionCategory;
+  category: string;
   total: number;
   percentage: number;
 }

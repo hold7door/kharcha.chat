@@ -1,4 +1,6 @@
+import json
 import requests
+
 from PIL import Image
 
 from dotenv import load_dotenv
@@ -42,12 +44,21 @@ pdf_path = "/home/braveheart/Documents/statements/test/Acct Statement_XX6119_290
 
 
 raw_images = ImageExtractor().extract(
-    pdf_path=pdf_path
+    pdf_path=pdf_path,
+    num_page=5
 )
+
+all_txns = []
 
 for raw_image in raw_images:
     extracted_txns = GeminiStructure().process(
         raw_image=raw_image
     )
+    all_txns.extend(extracted_txns)
 
-    print(extracted_txns)
+for idx, txn in enumerate(all_txns):
+    txn["id"] = f"txn{idx+1}"
+
+# Write to file with indentation
+with open("output.json", "w") as f:
+    json.dump(all_txns, f, indent=4)

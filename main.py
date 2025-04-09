@@ -79,7 +79,8 @@ gemini = GeminiStructure()
 
 
 all_txns = gemini.process_all(
-    raw_images=raw_images
+    raw_images=raw_images,
+    parallel=False
 )
 
 for idx, txn in enumerate(all_txns):

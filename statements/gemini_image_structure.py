@@ -13,6 +13,8 @@ class GeminiStructure:
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
     
     def get_meta_info(self, raw_image) -> str:
+        start_time = time.time()
+
         prompt = """
             This is bank statement page. Give me a list of pointers to describe the table structure. It should among others include the following - 
 
@@ -21,18 +23,8 @@ class GeminiStructure:
             3. Mention position of each column in the table
         """
 
-        try:
-            response = self.client.models.generate_content(
-                model='gemini-2.0-flash',
-                contents=[prompt, raw_image]
-            )
-            info = response.text
-
-            return info
-        
-        except Exception as e:
-            logger.error(f"Error processing page: {e}")
-            return """
+        # default info
+        result = """
             1. The data is in a tabular format
             2. Each transaction lies in a table row
             3. To determine if transaction is debit or credit transaction the table can be structured in either of two ways. You need to determine and choose
@@ -40,6 +32,23 @@ class GeminiStructure:
                 a. There are two columns - one for debit and other for credit. In most cases the left of the two is a debit column and the right is for credit
                 b. One column which tells the type of the transaction. Possible types in bank statements are - DR (for debit), CR (for credit), Withdrawal, Deposit etc.
             """
+
+        try:
+            response = self.client.models.generate_content(
+                model='gemini-2.0-flash',
+                contents=[prompt, raw_image]
+            )
+            result = response.text
+        
+        except Exception as e:
+            logger.error(f"Error getting meta info from page: {e}")
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+
+        logger.info(f"Generated meta info in {elapsed_time:.4f} seconds")
+
+        return result
 
     def process(self, raw_image, meta_info: str):
         # TODO: https://ai.google.dev/gemini-api/docs/structured-output?lang=python#supply-schema-in-config

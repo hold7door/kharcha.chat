@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+import os
 import json
 import math
 
@@ -28,7 +29,7 @@ app = FastAPI()
 # Allow frontend origin
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],  # or ["*"] to allow all
+    allow_origins=[os.getenv("ALLOW_ORIGIN")],  # or ["*"] to allow all
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,14 +41,14 @@ async def upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
 
     try:
-        # DUMB TO TEST
-        with open("output.json", "r") as f:
-            results = json.load(f)
-            for idx, txn in enumerate(results):
-                txn["id"] = f"txn{idx+1}"
-                txn["date"] = to_dd_mm_yyyy(txn["date"])
+        # STUB TO TEST
+        # with open("output.json", "r") as f:
+        #     results = json.load(f)
+        #     for idx, txn in enumerate(results):
+        #         txn["id"] = f"txn{idx+1}"
+        #         txn["date"] = to_dd_mm_yyyy(txn["date"])
 
-            return JSONResponse(content=results)
+        #     return JSONResponse(content=results)
         
         raw_images = ImageExtractor().extract(
             pdf_path=file.file,
@@ -65,14 +66,17 @@ async def upload_file(file: UploadFile = File(...)):
 
             results = gemini.process_all(raw_images, meta_info=meta_info, parallel=False)
 
+            # add a unique identifier to each image
             for idx, txn in enumerate(results):
                 txn["id"] = f"txn{idx+1}"
 
         logger.info(f"Found {len(results)} transactions")
 
+        # FOR TESTING ONLY
+        
         # Write to file with indentation
-        with open("output.json", "w") as f:
-            json.dump(results, f, indent=4)
+        # with open("output.json", "w") as f:
+        #     json.dump(results, f, indent=4)
 
         return JSONResponse(content=results)
 

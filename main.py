@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 from statements.extract import ImageExtractor
 from statements.gemini_image_structure import GeminiStructure
 
-pdf_path = "/home/braveheart/Documents/statements/test/Statement_1744089281016.pdf"
+pdf_path = "/home/braveheart/Documents/statements/test/Acct Statement_XX6119_29032025.pdf"
 
 # raw_text = TextExtractor().extract(
 #     pdf_path=pdf_path
@@ -51,7 +51,7 @@ pdf_path = "/home/braveheart/Documents/statements/test/Statement_1744089281016.p
 
 raw_images = ImageExtractor().extract(
     pdf_path=pdf_path,
-    num_page=math.inf
+    num_page=1
 )
 
 all_txns = []
@@ -59,6 +59,11 @@ all_txns = []
 
 gemini = GeminiStructure()
 
+# extract table information
+
+meta_info = gemini.get_meta_info(
+    raw_image=raw_images[0]
+)
 
 # single
 # for raw_image in raw_images:
@@ -80,6 +85,7 @@ gemini = GeminiStructure()
 
 all_txns = gemini.process_all(
     raw_images=raw_images,
+    meta_info=meta_info,
     parallel=False
 )
 

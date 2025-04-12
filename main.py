@@ -10,14 +10,14 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from statements.log_ger import logging
+from kharcha.log_ger import logging
 
 logger = logging.getLogger(__name__)
 
-from statements.extract import ImageExtractor
-from statements.gemini_image_structure import GeminiStructure
+from kharcha.extract import ImageExtractor
+from kharcha.gemini_image_structure import GeminiStructure
 
-pdf_path = "/home/braveheart/Documents/statements/test/Acct Statement_XX6119_29032025.pdf"
+pdf_path = "/home/braveheart/Documents/kharcha/test/Acct Statement_XX6119_29032025.pdf"
 
 # raw_text = TextExtractor().extract(
 #     pdf_path=pdf_path

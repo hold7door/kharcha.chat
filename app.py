@@ -11,12 +11,12 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from statements.gemini_image_structure import GeminiStructure
-from statements.extract import ImageExtractor
+from kharcha.gemini_image_structure import GeminiStructure
+from kharcha.extract import ImageExtractor
 
-from statements.log_ger import logging
+from kharcha.log_ger import logging
 
-from statements.utils import to_dd_mm_yyyy
+from kharcha.utils import to_dd_mm_yyyy
 
 logger = logging.getLogger(__name__)
 

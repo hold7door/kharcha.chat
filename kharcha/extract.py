@@ -33,6 +33,7 @@ class ImageExtractor:
                 img = page.to_image(resolution=600).original
                 images.append(img)
                 page.flush_cache()
+                page.get_textmap.cache_clear()
         
         end_time = time.time()
         elapsed_time = end_time - start_time

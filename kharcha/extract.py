@@ -25,22 +25,14 @@ class ImageExtractor:
 
         images = []
 
-        with pdfplumber.open(pdf_path) as pdf:
-            num_of_pages = min(num_page, len(pdf.pages))
-
-        for page_number in range(num_of_pages):
-            with pdfplumber.open(pdf_path) as pdf:
-                page = pdf.pages[page_number]
-                img = page.to_image(resolution=600).original
-                images.append(img)
-     
         # pdfplumber has memory leak
         # https://github.com/jsvine/pdfplumber/issues/193
         
-        # with pdfplumber.open(pdf_path) as pdf:
-        #     for page in pdf.pages[:min(num_page, len(pdf.pages))]:
-        #         img = page.to_image(resolution=600).original
-        #         images.append(img)
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages[:min(num_page, len(pdf.pages))]:
+                img = page.to_image(resolution=600).original
+                images.append(img)
+                page.flush_cache()
         
         end_time = time.time()
         elapsed_time = end_time - start_time

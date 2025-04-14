@@ -52,13 +52,11 @@ async def upload_file(file: UploadFile = File(...)):
         if not raw_images:
             raise HTTPException(status_code=400, detail="No images extracted from PDF.")
 
-        # Extract table structure information from the first page
-        meta_info = gemini.get_meta_info(raw_image=raw_images[0])
 
         # Define a generator to process each image and yield transactions
         def transaction_generator():
             for idx, raw_image in enumerate(raw_images):
-                transactions = gemini.process(raw_image, meta_info)
+                transactions = gemini.process(raw_image)
                 for txn in transactions:
                     txn["id"] = f"txn{idx+1}"
                     yield txn
@@ -91,18 +89,8 @@ async def upload_images(file: UploadFile = File(...)):
 
         results = []
 
-        # extract table information
 
-        meta_info = """
-        1. The data is in a tabular format
-        2. Each transaction lies in a table row
-        3. To determine if transaction is debit or credit transaction the table can be structured in either of two ways. You need to determine and choose
-        between one of the two - 
-            a. There are two columns - one for debit and other for credit. In most cases the left of the two is a debit column and the right is for credit
-            b. One column which tells the type of the transaction. Possible types in bank statements are - DR (for debit), CR (for credit), Withdrawal, Deposit etc.
-        """
-
-        results = gemini.process_all([raw_image], meta_info=meta_info, parallel=False)
+        results = gemini.process_all([raw_image], parallel=False)
         
         logger.info(f"Found {len(results)} transactions")
 

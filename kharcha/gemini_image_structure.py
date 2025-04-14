@@ -10,19 +10,22 @@ from .utils import to_dd_mm_yyyy
 logger = logging.getLogger(__name__)
 
 class GeminiStructure:
-    def __init__(self):
-        self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-    
-    def get_meta_info(self, raw_image) -> str:
-        start_time = time.time()
 
-        prompt = """
+    DEFAULT_META = """
             This is bank statement page. Give me a list of pointers to describe the table structure. It should among others include the following - 
 
             1. How is the table structured to determine a debit or a credit transaction
             2. Where is the date column and how is it structured
             3. Mention position of each column in the table
         """
+
+    def __init__(self):
+        self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    
+    def get_meta_info(self, raw_image) -> str:
+        start_time = time.time()
+
+        prompt = self.DEFAULT_META
 
         # default info
         result = """
@@ -51,7 +54,7 @@ class GeminiStructure:
 
         return result
 
-    def process(self, raw_image, meta_info: str):
+    def process(self, raw_image, meta_info: str = DEFAULT_META):
         # TODO: https://ai.google.dev/gemini-api/docs/structured-output?lang=python#supply-schema-in-config
 
         prompt = f"""Extract transactions from this bank statement as a JSON array in the provided format.
@@ -104,7 +107,7 @@ class GeminiStructure:
             logger.error(f"Error processing page: {e}")
             return []
     
-    def _process_serial(self, raw_images, meta_info: str):
+    def _process_serial(self, raw_images, meta_info: str = DEFAULT_META):
         results = []
 
         total_time = 0
@@ -131,7 +134,7 @@ class GeminiStructure:
 
         return results
     
-    def _process_parallel(self, raw_images, meta_info: str):
+    def _process_parallel(self, raw_images, meta_info: str = DEFAULT_META):
         start_time = time.time()
 
         results = []
@@ -150,7 +153,7 @@ class GeminiStructure:
         
         return results
 
-    def process_all(self, raw_images, meta_info: str, parallel: bool = True):
+    def process_all(self, raw_images, meta_info: str = DEFAULT_META, parallel: bool = True):
         logger.info(f"Total pages to process: {len(raw_images)}")
 
         if parallel: 

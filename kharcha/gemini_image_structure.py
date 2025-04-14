@@ -1,6 +1,8 @@
 import os
 import time
 import json
+import tracemalloc
+
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from google import genai
 from .log_ger import logging
@@ -109,6 +111,8 @@ class GeminiStructure:
         total_time = 0
 
         for idx, raw_image in enumerate(raw_images):
+            tracemalloc.start()
+            snapshot_before = tracemalloc.take_snapshot()
 
             start_time = time.time()
             transactions = self.process(
@@ -124,6 +128,14 @@ class GeminiStructure:
 
 
             logger.info(f"Processed page {idx + 1} in {elapsed_time:.4f} seconds")
+
+            snapshot_after = tracemalloc.take_snapshot()
+            top_stats = snapshot_after.compare_to(snapshot_before, 'lineno')
+
+            logger.info("[ Top 10 differences ]")
+            for stat in top_stats[:10]:
+                logger.info(stat)
+
 
             del raw_image
             del transactions

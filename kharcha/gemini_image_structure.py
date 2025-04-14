@@ -66,8 +66,7 @@ class GeminiStructure:
         2. Category information can be extracted from the description. For ex - Swiggy, Zomato, Digitalocean, Rishabh (persons name) etc.
         3. It is possible for two transactions with same category with different types - credit and debit
         
-        Also explain in the 'why' field why you categorised the transaction as debit or credit
-
+        
         Format:
 
         'type' field should be debit or credit.
@@ -81,7 +80,6 @@ class GeminiStructure:
                 "amount": 123.45,
                 "type": "debit/credit",
                 "category": "Swiggy"
-                "why": ""
             }}
         ]
 

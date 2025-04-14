@@ -124,9 +124,11 @@ class GeminiStructure:
             total_time += elapsed_time
 
             current, peak = tracemalloc.get_traced_memory()
-            
+
             logger.info(f"Processed page {idx + 1} in {elapsed_time:.4f} seconds")
             logger.info(f"Current memory usage: {current / 1024:.2f} KiB; Peak: {peak / 1024:.2f} KiB")
+
+            tracemalloc.stop()
 
         
         return results

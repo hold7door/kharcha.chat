@@ -51,7 +51,7 @@ async def upload_file(file: UploadFile = File(...)):
         #     return JSONResponse(content=results)
         
         raw_images = ImageExtractor().extract(
-            pdf_path=file.file,
+            pdf_path=file.file.read(),
             num_page=math.inf
         )
         results = []

@@ -6,23 +6,17 @@ load_dotenv()
 import os
 import json
 import math
-
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import StreamingResponse
 
 from kharcha.gemini_image_structure import GeminiStructure
 from kharcha.extract import ImageExtractor
-
 from kharcha.log_ger import logging
-
-from kharcha.utils import to_dd_mm_yyyy
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
 
-gemini = GeminiStructure()
 
 app = FastAPI()
 
@@ -35,50 +29,45 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+gemini = GeminiStructure()
+
 @app.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
 
     try:
-        # STUB TO TEST
-        # with open("output.json", "r") as f:
-        #     results = json.load(f)
-        #     for idx, txn in enumerate(results):
-        #         txn["id"] = f"txn{idx+1}"
-        #         txn["date"] = to_dd_mm_yyyy(txn["date"])
+        # Read the uploaded PDF file
+        pdf_bytes = await file.read()
 
-        #     return JSONResponse(content=results)
-        
+        # Extract images from the PDF
         raw_images = ImageExtractor().extract(
-            pdf_path=file.file.read(),
+            pdf_path=pdf_bytes,
             num_page=math.inf
         )
-        results = []
 
-        if raw_images:
+        if not raw_images:
+            raise HTTPException(status_code=400, detail="No images extracted from PDF.")
 
-            # extract table information
+        # Extract table structure information from the first page
+        meta_info = gemini.get_meta_info(raw_image=raw_images[0])
 
-            meta_info = gemini.get_meta_info(
-                raw_image=raw_images[0]
-            )
+        # Define a generator to process each image and yield transactions
+        def transaction_generator():
+            for idx, raw_image in enumerate(raw_images):
+                transactions = gemini.process(raw_image, meta_info)
+                for txn in transactions:
+                    txn["id"] = f"txn{idx+1}"
+                    yield txn
+                # Explicitly delete variables to free memory
+                del raw_image
+                del transactions
 
-            results = gemini.process_all(raw_images, meta_info=meta_info, parallel=False)
-
-            # add a unique identifier to each image
-            for idx, txn in enumerate(results):
-                txn["id"] = f"txn{idx+1}"
-
-        logger.info(f"Found {len(results)} transactions")
-
-        # FOR TESTING ONLY
-        
-        # Write to file with indentation
-        # with open("output.json", "w") as f:
-        #     json.dump(results, f, indent=4)
-
-        return JSONResponse(content=results)
+        # Create a streaming response to yield transactions as JSON
+        return StreamingResponse(
+            (json.dumps(txn) + "\n" for txn in transaction_generator()),
+            media_type="application/json"
+        )
 
     except Exception as e:
         logger.exception("Error processing uploaded PDF")

@@ -111,11 +111,12 @@ class GeminiStructure:
         for idx, raw_image in enumerate(raw_images):
 
             start_time = time.time()
+            transactions = self.process(
+                raw_image=raw_image,
+                meta_info=meta_info
+            )
             results.extend(
-                self.process(
-                    raw_image=raw_image,
-                    meta_info=meta_info
-                )
+                transactions
             )
             end_time = time.time()
             elapsed_time = end_time - start_time
@@ -124,8 +125,9 @@ class GeminiStructure:
 
             logger.info(f"Processed page {idx + 1} in {elapsed_time:.4f} seconds")
 
+            del raw_image
+            del transactions
 
-        
         return results
     
     def _process_parallel(self, raw_images, meta_info: str):

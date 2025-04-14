@@ -3,12 +3,15 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+import io
 import os
 import json
 import math
+from PIL import Image
+
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 
 from kharcha.gemini_image_structure import GeminiStructure
 from kharcha.extract import ImageExtractor
@@ -71,4 +74,40 @@ async def upload_file(file: UploadFile = File(...)):
 
     except Exception as e:
         logger.exception("Error processing uploaded PDF")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/upload-image/")
+async def upload_images(file: UploadFile = File(...)):
+    # Check that all uploaded files are PNGs
+
+    if not file.filename.endswith(".png"):
+        raise HTTPException(status_code=400, detail="Only PNG files are supported.")
+
+    try:
+        # Read all uploaded images
+        raw_image = await file.read()
+
+        raw_image = Image.open(io.BytesIO(raw_image))
+
+        results = []
+
+        # extract table information
+
+        meta_info = """
+        1. The data is in a tabular format
+        2. Each transaction lies in a table row
+        3. To determine if transaction is debit or credit transaction the table can be structured in either of two ways. You need to determine and choose
+        between one of the two - 
+            a. There are two columns - one for debit and other for credit. In most cases the left of the two is a debit column and the right is for credit
+            b. One column which tells the type of the transaction. Possible types in bank statements are - DR (for debit), CR (for credit), Withdrawal, Deposit etc.
+        """
+
+        results = gemini.process_all([raw_image], meta_info=meta_info, parallel=False)
+        
+        logger.info(f"Found {len(results)} transactions")
+
+        return JSONResponse(content=results)
+
+    except Exception as e:
+        logger.exception("Error processing uploaded images")
         raise HTTPException(status_code=500, detail=str(e))

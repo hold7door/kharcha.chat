@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import tracemalloc
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from google import genai
 from .log_ger import logging
@@ -66,7 +67,7 @@ class GeminiStructure:
         2. Category information can be extracted from the description. For ex - Swiggy, Zomato, Digitalocean, Rishabh (persons name) etc.
         3. It is possible for two transactions with same category with different types - credit and debit
         
-        
+
         Format:
 
         'type' field should be debit or credit.
@@ -109,6 +110,8 @@ class GeminiStructure:
         total_time = 0
 
         for idx, raw_image in enumerate(raw_images):
+            tracemalloc.start()
+
             start_time = time.time()
             results.extend(
                 self.process(
@@ -120,7 +123,11 @@ class GeminiStructure:
             elapsed_time = end_time - start_time
             total_time += elapsed_time
 
-            logger.info(f"Processed {idx+1} page(s) in {total_time:.4f} seconds")
+            current, peak = tracemalloc.get_traced_memory()
+            
+            logger.info(f"Processed page {idx + 1} in {elapsed_time:.4f} seconds")
+            logger.info(f"Current memory usage: {current / 1024:.2f} KiB; Peak: {peak / 1024:.2f} KiB")
+
         
         return results
     

@@ -9,7 +9,7 @@ import json
 import math
 from PIL import Image
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 
@@ -75,7 +75,7 @@ async def upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/upload-image/")
-async def upload_images(file: UploadFile = File(...)):
+async def upload_images(file: UploadFile = File(...), meta_info: str = Form(None)):
     # Check that all uploaded files are PNGs
 
     if not file.filename.endswith(".png"):
@@ -89,12 +89,40 @@ async def upload_images(file: UploadFile = File(...)):
 
         results = []
 
-
-        results = gemini.process_all([raw_image], parallel=False)
+        if meta_info:
+            results = gemini.process_all([raw_image], meta_info=meta_info, parallel=False)
+        else:
+            results = gemini.process_all([raw_image], parallel=False)
         
         logger.info(f"Found {len(results)} transactions")
 
         return JSONResponse(content=results)
+
+    except Exception as e:
+        logger.exception("Error processing uploaded images")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/meta-info/")
+async def get_meta_info(file: UploadFile = File(...)):
+    # Check that all uploaded files are PNGs
+
+    if not file.filename.endswith(".png"):
+        raise HTTPException(status_code=400, detail="Only PNG files are supported.")
+
+    try:
+        # Read all uploaded images
+        raw_image = await file.read()
+        
+        raw_image = Image.open(io.BytesIO(raw_image))
+
+        result = gemini.get_meta_info(
+            raw_image=raw_image
+        )
+        
+        return JSONResponse(content={
+            "meta_info": result
+        })
 
     except Exception as e:
         logger.exception("Error processing uploaded images")

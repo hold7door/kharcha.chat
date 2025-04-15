@@ -12,11 +12,12 @@ logger = logging.getLogger(__name__)
 class GeminiStructure:
 
     DEFAULT_META = """
-            This is bank statement page. Give me a list of pointers to describe the table structure. It should among others include the following - 
-
-            1. How is the table structured to determine a debit or a credit transaction
-            2. Where is the date column and how is it structured
-            3. Mention position of each column in the table
+            1. The data is in a tabular format
+            2. Each transaction lies in a table row
+            3. To determine if transaction is debit or credit transaction the table can be structured in either of two ways. You need to determine and choose
+            between one of the two - 
+                a. There are two columns - one for debit and other for credit. In most cases the left of the two is a debit column and the right is for credit. However, this might not always be true.
+                b. One column which tells the type of the transaction. Possible types in bank statements are - DR (for debit), CR (for credit), Withdrawal, Deposit etc.
         """
 
     def __init__(self):
@@ -25,17 +26,16 @@ class GeminiStructure:
     def get_meta_info(self, raw_image) -> str:
         start_time = time.time()
 
-        prompt = self.DEFAULT_META
+        prompt = """
+            This is bank statement page. Give me a list of pointers to describe the table structure. It should among others include the following - 
+
+            1. How is the table structured to determine a debit or a credit transaction
+            2. Where is the date column and how is it structured
+            3. Mention position of each column in the table
+        """
 
         # default info
-        result = """
-            1. The data is in a tabular format
-            2. Each transaction lies in a table row
-            3. To determine if transaction is debit or credit transaction the table can be structured in either of two ways. You need to determine and choose
-            between one of the two - 
-                a. There are two columns - one for debit and other for credit. In most cases the left of the two is a debit column and the right is for credit
-                b. One column which tells the type of the transaction. Possible types in bank statements are - DR (for debit), CR (for credit), Withdrawal, Deposit etc.
-            """
+        result = self.DEFAULT_META
 
         try:
             response = self.client.models.generate_content(
